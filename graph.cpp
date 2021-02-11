@@ -28,7 +28,7 @@ Graph::Graph(std::string fileName, unsigned char readFlags) {
         lineNumber++;
         std::istringstream ss(line);
         int from, to;
-        // Get fertex numbers for the edge
+        // Get vertex numbers for the edge
         ss >> from >> to;
         // Catch bad input errors
         if (from > numV || to > numV) {
@@ -150,7 +150,7 @@ void Graph::Dump(std::string fileName) {
     std::ofstream f(fileName);
 
     for (int i = 0; i < this->vertices.size(); i++) {
-        std::stringstream ss;
+        std::ostringstream ss;
         const Vertex* v = &this->vertices[i];
         ss << i + 1 << ", " << v->pre << ", " << v->post << ", " << v->component << "\n";
         f << ss.str();
@@ -161,12 +161,12 @@ void Graph::Dump(std::string fileName) {
 
 std::ostream& operator<<(std::ostream& out, const Graph& g) {
     out << g.GetVertices();
-    // out << g.GetEdges();
+    out << g.GetEdges();
     return out;
 }
 
 std::string Graph::GetVertices() const {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "Vertices:" << std::endl;
     for (int i = 0; i < this->vertices.size(); i++) {
         const Vertex* v = &this->vertices[i];
@@ -180,7 +180,7 @@ std::string Graph::GetVertices() const {
 }
 
 std::string Graph::GetDistances(int vertexIdx) const {
-    std::stringstream ss;
+    std::ostringstream ss;
     const Vertex* v = &this->vertices[vertexIdx];
     ss << "Distances from Vertex " << vertexIdx << " {" << std::endl;
     for (int i = 0; i < v->distances.size(); i++) {
@@ -192,7 +192,7 @@ std::string Graph::GetDistances(int vertexIdx) const {
 }
 
 std::string Graph::GetEdges() const {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << "\nEdges:" << std::endl;
     for (int from = 0; from < this->vertices.size(); from++) {
         for (int to = 0; to < this->vertices.size(); to++) {

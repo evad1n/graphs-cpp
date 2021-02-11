@@ -26,8 +26,8 @@ void printGraph(std::string fileName, unsigned char readFlags) {
     Graph g = Graph(fileName, readFlags);
     // std::cout << g << std::endl;
     g.DFS();
-    g.BFS(1);
-    g.BFS(2);
+    // g.BFS(1);
+    // g.BFS(2);
     std::cout << g << std::endl;
 }
 
