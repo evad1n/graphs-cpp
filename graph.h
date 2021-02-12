@@ -5,9 +5,11 @@
 #include <fstream>
 #include <iostream>
 
-enum ReadFlags {
+enum Options {
     Directed = 0x01,
-    Weighted = 0x02
+    Weighted = 0x02,
+    PrintEdges = 0x04,
+    OnlyPrint = 0x08
 };
 
 struct Vertex {
@@ -24,6 +26,8 @@ private:
     std::vector<std::vector<int>> adjacencies; // The adjancency matrix
     int cc; // Connected component number
     int clock; // Previsit/postvisit counter
+
+    unsigned char opts;
 
     void Previsit(int vertexIndex);
     void Postvisit(int vertexIndex);

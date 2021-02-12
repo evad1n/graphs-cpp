@@ -3,7 +3,8 @@
 #include <sstream>
 #include "graph.h"
 
-Graph::Graph(std::string fileName, unsigned char readFlags) {
+Graph::Graph(std::string fileName, unsigned char options)
+    : opts(options) {
     std::ifstream f;
     f.open(fileName);
 
@@ -40,13 +41,13 @@ Graph::Graph(std::string fileName, unsigned char readFlags) {
         to--;
         // Set weight
         int weight = 1;
-        if (readFlags & Weighted) {
+        if (options & Weighted) {
             ss >> weight;
         }
         // Set in matrix
         matrix[from][to] = weight;
         // Also do reverse 
-        if (readFlags ^ Directed) {
+        if (options ^ Directed) {
             matrix[to][from] = weight;
         }
     }
@@ -161,7 +162,9 @@ void Graph::Dump(std::string fileName) {
 
 std::ostream& operator<<(std::ostream& out, const Graph& g) {
     out << g.GetVertices();
-    out << g.GetEdges();
+    if (g.opts & PrintEdges) {
+        out << g.GetEdges();
+    }
     return out;
 }
 
@@ -184,7 +187,12 @@ std::string Graph::GetDistances(int vertexIdx) const {
     const Vertex* v = &this->vertices[vertexIdx];
     ss << "Distances from Vertex " << vertexIdx << " {" << std::endl;
     for (int i = 0; i < v->distances.size(); i++) {
-        ss << "To Vertex " << i << ": " << v->distances[i] << std::endl;
+        ss << "\tTo Vertex " << i << ": ";
+        if (v->distances[i] == INT32_MAX)
+            ss << "∞";
+        else
+            ss << v->distances[i];
+        ss << std::endl;
     }
     ss << "}" << std::endl;
 
