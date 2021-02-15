@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fstream>
 #include "graph.h"
+#include "binary_heap.h"
 
 void processGraph(std::string fileName, unsigned char options) {
     std::ostringstream ss;
@@ -41,7 +42,32 @@ void printGraph(std::string fileName, unsigned char options) {
     std::cout << g << std::endl;
 }
 
-int main(int argc, char const* argv[]) {
+void testBinaryHeap() {
+    BinaryHeap h(11);
+
+    h.Insert(3);
+    std::cout << h << std::endl;
+    h.Insert(2);
+    std::cout << h << std::endl;
+    h.Insert(1);
+    std::cout << h << std::endl;
+    h.Insert(6);
+    std::cout << h << std::endl;
+    h.Insert(5);
+    std::cout << h << std::endl;
+    h.Insert(4);
+    std::cout << h.Index(4) << std::endl;
+    std::cout << h << std::endl;
+    h.Insert(7);
+    std::cout << h << std::endl;
+    for (int i = 0; i < 6; i++) {
+        std::cout << h.DeleteMin() << std::endl;
+        std::cout << h << std::endl;
+    }
+    std::cout << h << std::endl;
+}
+
+void readInputs(int argc, char const* argv[]) {
     // Default to undirected and unweighted
     unsigned char options = 0;
 
@@ -60,6 +86,11 @@ int main(int argc, char const* argv[]) {
             std::cerr << "Ignoring invalid argument: " << argv[i] << std::endl;
         }
     }
+}
+
+int main(int argc, char const* argv[]) {
+    // readInputs(argc, argv);
+    testBinaryHeap();
 
     return 0;
 }
