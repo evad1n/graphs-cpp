@@ -2,6 +2,7 @@
 #include <queue>
 #include <sstream>
 #include "graph.h"
+#include "min_heap.h"
 
 Graph::Graph(std::string fileName, unsigned char options)
     : opts(options) {
@@ -118,7 +119,14 @@ void Graph::Djikstra(int startVertexIndex) {
 
     this->vertices[startVertexIndex].distances[startVertexIndex] = 0;
 
-    q.push(startVertexIndex);
+    // Make a new min heap
+    Element elements[this->vertices.size()];
+    // for (int i = 0; i < this->vertices; i++) {
+    //     Vertex* v = &this->vertices[i];
+    //     elements[i] = Element{ *v, *v->distances[i] };
+    // }
+
+    // q = MinHeap();
 
     while (q.size() > 0) {
         int currIdx = q.front();
