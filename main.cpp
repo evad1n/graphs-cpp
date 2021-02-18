@@ -3,6 +3,8 @@
 #include <string>
 #include <cstring>
 #include <fstream>
+#include <time.h>
+#include <cmath>
 #include "graph.h"
 #include "min_heap.h"
 
@@ -42,24 +44,72 @@ void printGraph(std::string fileName, unsigned char options) {
     std::cout << g << std::endl;
 }
 
+// makeheap(), deletemin(), insert() and decreasekey()
+void timeBinaryHeap() {
+    std::ofstream f("min-heap.csv");
+
+    for (int i = 4; i <= 22; i++) {
+        double avgMakeHeap, avgDeleteMin, avgInsert, avgDecreaseKey = 0;
+        int size = pow(2, i);
+        int reps = 10;
+        int innerReps = 100000;
+        for (int j = 0; j < reps; j++) {
+            // Create vector
+            std::vector<Element> S(size);
+            for (int el = 0; el < size; el++) {
+                S[el] = Element{ el, (rand() % 100) - 100 };
+            }
+
+            double start, elapsed;
+
+            // n log n
+            start = clock();
+            MinHeap h(S);
+            elapsed = (clock() - start) / CLOCKS_PER_SEC;
+            avgMakeHeap += elapsed;
+
+            for (int k = 0; k < innerReps; k++) {
+                // Sift
+                start = clock();
+                h.DeleteMin();
+                elapsed = (clock() - start) / CLOCKS_PER_SEC;
+                avgDeleteMin += elapsed;
+
+                // Bubble
+                start = clock();
+                h.Insert(Element{ size + 1, 134 });
+                elapsed = (clock() - start) / CLOCKS_PER_SEC;
+                avgInsert += elapsed;
+
+                // Bubble
+                start = clock();
+                h.DecreaseKey(size / 2, S[size / 2].key - 10);
+                elapsed = (clock() - start) / CLOCKS_PER_SEC;
+                avgDecreaseKey += elapsed;
+            }
+        }
+
+        std::ostringstream ss;
+        // Calculate average and write to file
+        ss << i << ", ";
+        ss << avgMakeHeap / reps << ", ";
+        ss << avgDeleteMin / (reps * innerReps) << ", ";
+        ss << avgInsert / (reps * innerReps) << ", ";
+        ss << avgDecreaseKey / (reps * innerReps);
+
+        std::cout << ss.str() << std::endl;
+        f << ss.str() << "\n";
+    }
+    f.close();
+}
+
 void testBinaryHeap() {
-    // std::vector<Element> S{};
-    // for (int i = 20; i > 0; i--) {
-    //     S.push_back(Element{ 2 * i, i });
-    // }
-
-    // MinHeap h(S);
-    // std::cout << h << std::endl;
-
-    // for (int i = 0; i < S.size(); i++) {
-    //     std::cout << h.DeleteMin() << std::endl;
-    // }
 
     std::vector<Element> S{};
     // std::vector<int> keys{ 21, 22, 25, 30, 31, 26, 25, 45 };
     // std::vector<int> IDs{ 3,8,2,4,6,1,5,7 };
-    std::vector<int> keys{ 27,26, 25, 21, 30, 25, 31, 45, 22 };
-    std::vector<int> IDs{ 0, 1, 2,3,4,5,6,7,8 };
+    std::vector<int> keys{ 27,26, 25, 21, 30, 25, 31, 45, 22, 45 };
+    std::vector<int> IDs{ 0, 1, 2,3,4,5,6,7,8, 9 };
 
     for (int i = 0; i < keys.size(); i++) {
         S.push_back(Element{ IDs[i], keys[i] });
@@ -68,9 +118,14 @@ void testBinaryHeap() {
     MinHeap h(S);
     std::cout << h << std::endl;
 
-    // for (int i = 0; i < S.size(); i++) {
-    //     std::cout << h.DeleteMin() << std::endl;
-    // }
+    h.DecreaseKey(9, 30);
+    std::cout << h << std::endl;
+
+    for (int i = 0; i < S.size(); i++) {
+        int ID = h.DeleteMin();
+        std::cout << ID << ", " << keys[ID] << std::endl;
+        std::cout << h << std::endl;
+    }
 
 }
 
@@ -96,8 +151,10 @@ void readInputs(int argc, char const* argv[]) {
 }
 
 int main(int argc, char const* argv[]) {
+    srand(time(NULL));
     // readInputs(argc, argv);
-    testBinaryHeap();
+    // testBinaryHeap();
+    timeBinaryHeap();
 
     return 0;
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "min_heap.h"
 
 MinHeap::MinHeap(int capacity) {
@@ -27,6 +28,11 @@ MinHeap::MinHeap(std::vector<Element> arr) {
 
 MinHeap::~MinHeap() {}
 
+int MinHeap::Size() {
+    return this->size;
+}
+
+
 void MinHeap::Insert(Element el) {
     if (this->size == this->capacity) {
         // Full
@@ -37,14 +43,12 @@ void MinHeap::Insert(Element el) {
     this->BubbleUp(el, this->size - 1);
 }
 
-void MinHeap::IncreaseKey(int ID) {
-    int i = this->Index(ID);
-    this->SiftDown(Element{ this->IDs[i], this->keys[i] }, i);
+void MinHeap::IncreaseKey(int ID, int newKey) {
+    this->SiftDown(Element{ ID, newKey }, this->Index(ID));
 }
 
-void MinHeap::DecreaseKey(int ID) {
-    int i = this->Index(ID);
-    this->BubbleUp(Element{ this->IDs[i], this->keys[i] }, i);
+void MinHeap::DecreaseKey(int ID, int newKey) {
+    this->BubbleUp(Element{ ID, newKey }, this->Index(ID));
 }
 
 int MinHeap::DeleteMin() {
@@ -97,12 +101,11 @@ int MinHeap::MinChild(int index) {
 }
 
 int MinHeap::Index(int ID) {
-    if (ID > this->capacity) {
+    if (ID < this->size) {
         return this->indices[ID];
     }
     return -1;
 }
-
 
 int MinHeap::MinIndex(int a, int b) {
     return this->keys[a] < this->keys[b] ? a : b;
@@ -121,20 +124,21 @@ int MinHeap::Right(int idx) {
 }
 
 std::ostream& operator<<(std::ostream& out, const MinHeap& h) {
+    out.setf(std::ios::left);
     for (int i = 0; i < h.size; i++) {
-        out << h.IDs[i] << " ";
+        out << std::setw(4) << h.IDs[i] << " ";
     }
     out << std::endl;
     for (int i = 0; i < h.size; i++) {
-        out << h.keys[i] << " ";
+        out << std::setw(4) << h.keys[i] << " ";
     }
     out << std::endl;
     for (int i = 0; i < h.size; i++) {
-        out << h.indices[i] << " ";
+        out << std::setw(4) << h.indices[i] << " ";
     }
     out << std::endl;
     for (int i = 0; i < h.size; i++) {
-        out << i << " ";
+        out << std::setw(4) << i << " ";
     }
     out << std::endl;
     return out;

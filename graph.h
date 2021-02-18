@@ -12,16 +12,28 @@ enum Options {
     OnlyPrint = 0x08
 };
 
+struct DistancePath;
+struct Vertex;
+
+// Represents the shortest path to a vertex, with the distance and the previous node in the path
+struct DistancePath {
+    int distance = INT32_MAX;
+    Vertex* prev = NULL;
+};
+
 struct Vertex {
-    bool visited; // Temporary for exploring/dfs
+    int number;
+    bool visited = false; // Temporary for exploring/dfs
     int pre; // The pre number
     int post; // The post number
     int component; // The connected component number
-    std::vector<int> distances; // The distances to other vertices in the graph
+    std::vector<DistancePath> distancePaths; // The distances to other vertices in the graph
 };
+
 
 class Graph {
 private:
+    int numV; // Number of vertices
     std::vector<Vertex> vertices; // List of vertices
     std::vector<std::vector<int>> adjacencies; // The adjancency matrix
     int cc; // Connected component number

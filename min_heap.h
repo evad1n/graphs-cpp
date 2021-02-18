@@ -21,6 +21,13 @@ private:
     int Left(int idx);
     int Right(int idx);
 
+    // Place element at position index and let the heap bubble up
+    void BubbleUp(Element e, int index);
+    // Place element at position index and let the heap sift down
+    void SiftDown(Element e, int index);
+    // Returns the index of the smaller child of heap[index]
+    int MinChild(int index);
+
 public:
     // Empty heap with specified capacity
     MinHeap(int capacity);
@@ -28,17 +35,13 @@ public:
     MinHeap(std::vector<Element> arr);
     ~MinHeap();
 
+    int Size();
+
     void Insert(Element el);
-    void IncreaseKey(int ID);
-    void DecreaseKey(int ID);
+    void IncreaseKey(int ID, int newKey);
+    void DecreaseKey(int ID, int newKey);
     // Return -1 if no elements
     int DeleteMin();
-    // Place element at position index and let the heap bubble up
-    void BubbleUp(Element e, int index);
-    // Place element at position index and let the heap sift down
-    void SiftDown(Element e, int index);
-    // Returns the index of the smaller child of heap[index]
-    int MinChild(int index);
     // Returns the index of the element, -1 if not found
     int Index(int ID);
 
