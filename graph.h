@@ -60,7 +60,7 @@ public:
     // Sets distances to each vertex from the starting vertex
     void BFS(int startVertexIndex);
 
-    void Djikstra(int startVertexIndex);
+    void Dijkstra(int startVertexIndex);
 
     // Writes vertex data out to file in csv format
     void Dump(std::string fileName);

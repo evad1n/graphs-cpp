@@ -2,7 +2,9 @@
 
 ## Input file format
 
-Must be .txt
+- Must be .txt
+
+- Vertices are 1-indexed
 
 ```bash
 12 # Number of vertices

@@ -120,7 +120,7 @@ void Graph::BFS(int startVertexIndex) {
     }
 }
 
-void Graph::Djikstra(int startVertexIndex) {
+void Graph::Dijkstra(int startVertexIndex) {
     // Correct for 1 indexing
     startVertexIndex--;
     Vertex* start = &this->vertices[startVertexIndex];
@@ -205,7 +205,7 @@ std::string Graph::GetDistances(int vertexIdx) const {
     const Vertex* v = &this->vertices[vertexIdx];
     ss << "Distances from Vertex " << vertexIdx << " {\n";
     for (int i = 0; i < this->numV; i++) {
-        ss << "\tTo Vertex " << i + 1 << ": ";
+        ss << "\tTo Vertex " << i + 1 << " => Distance: ";
         if (v->distancePaths[i].distance == INT32_MAX)
             ss << "∞";
         else

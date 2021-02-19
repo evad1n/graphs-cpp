@@ -37,8 +37,8 @@ void printGraph(std::string fileName, unsigned char options) {
     printOptions(options);
 
     Graph g = Graph(fileName, options);
-    g.DFS();
-    g.Djikstra(1);
+    // g.DFS();
+    g.Dijkstra(1);
     std::cout << g << std::endl;
 }
 
@@ -163,9 +163,9 @@ void readInputs(int argc, char const* argv[]) {
 }
 
 int main(int argc, char const* argv[]) {
-    // readInputs(argc, argv);
+    readInputs(argc, argv);
     // testBinaryHeap();
-    timeBinaryHeap();
+    // timeBinaryHeap();
 
     return 0;
 }
