@@ -132,20 +132,25 @@ void Graph::Djikstra(int startVertexIndex) {
     }
     MinHeap heap(els);
 
-    this->vertices[startVertexIndex].distancePaths[startVertexIndex].distance = 0;
+    start->distancePaths[startVertexIndex].distance = 0;
+    heap.DecreaseKey(startVertexIndex, 0);
 
     while (heap.Size() > 0) {
         int currIdx = heap.DeleteMin();
 
-        // for (int i = 0; i < this->adjacencies[currIdx].size(); i++) {
-        //     int weight = this->adjacencies[currIdx][i];
-        //     int* currDist = &this->vertices[startVertexIndex].distances[i];
-        //     int* newDist = &this->vertices[startVertexIndex].distances[currIdx];
-        //     if (weight != 0 && *currDist > *newDist + weight) {
-        //         *currDist = *newDist + weight;
-        //         q.push(i);
-        //     }
-        // }
+        for (int to = 0; to < this->numV; to++) {
+            // If there is an edge and we can get to it
+            if (this->adjacencies[currIdx][to] != 0 && start->distancePaths[currIdx].distance != INT32_MAX) {
+                int weight = this->adjacencies[currIdx][to];
+                int* currDist = &start->distancePaths[to].distance;
+                int newDist = start->distancePaths[currIdx].distance + weight;
+                if (newDist < *currDist) {
+                    *currDist = newDist;
+                    start->distancePaths[to].prev = &this->vertices[currIdx];
+                    heap.DecreaseKey(to, newDist);
+                }
+            }
+        }
     }
 }
 
@@ -183,10 +188,10 @@ std::ostream& operator<<(std::ostream& out, const Graph& g) {
 
 std::string Graph::GetVertices() const {
     std::ostringstream ss;
-    ss << "Vertices:" << std::endl;
+    ss << "Vertices:\n";
     for (int i = 0; i < this->numV; i++) {
         const Vertex* v = &this->vertices[i];
-        ss << "Vertex " << i + 1 << ": {visited: " << v->visited << ", component: " << v->component << ", pre: " << v->pre << ", post: " << v->post << "}" << std::endl;
+        ss << "Vertex " << i + 1 << ": {visited: " << v->visited << ", component: " << v->component << ", pre: " << v->pre << ", post: " << v->post << "}\n";
         // Show distances if some form of BFS was performed on this vertex
         if (v->distancePaths[i].distance != INT32_MAX) {
             ss << this->GetDistances(i);
@@ -198,32 +203,32 @@ std::string Graph::GetVertices() const {
 std::string Graph::GetDistances(int vertexIdx) const {
     std::ostringstream ss;
     const Vertex* v = &this->vertices[vertexIdx];
-    ss << "Distances from Vertex " << vertexIdx << " {" << std::endl;
+    ss << "Distances from Vertex " << vertexIdx << " {\n";
     for (int i = 0; i < this->numV; i++) {
-        ss << "\tTo Vertex " << i << ": ";
+        ss << "\tTo Vertex " << i + 1 << ": ";
         if (v->distancePaths[i].distance == INT32_MAX)
             ss << "∞";
         else
             ss << v->distancePaths[i].distance;
         ss << ", Prev: ";
         if (v->distancePaths[i].prev != NULL)
-            ss << v->distancePaths[i].prev->number;
+            ss << v->distancePaths[i].prev->number + 1;
         else
             ss << "NULL";
-        ss << std::endl;
+        ss << "\n";
     }
-    ss << "}" << std::endl;
+    ss << "}\n";
 
     return ss.str();
 }
 
 std::string Graph::GetEdges() const {
     std::ostringstream ss;
-    ss << "\nEdges:" << std::endl;
+    ss << "\nEdges:\n";
     for (int from = 0; from < this->numV; from++) {
         for (int to = 0; to < this->numV; to++) {
             if (this->adjacencies[from][to] > 0) {
-                ss << "from: " << from + 1 << ", to: " << to + 1 << ", weight: " << this->adjacencies[from][to] << std::endl;
+                ss << "from: " << from + 1 << ", to: " << to + 1 << ", weight: " << this->adjacencies[from][to] << "\n";
             }
         }
     }

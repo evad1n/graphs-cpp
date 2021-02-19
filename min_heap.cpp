@@ -101,7 +101,7 @@ int MinHeap::MinChild(int index) {
 }
 
 int MinHeap::Index(int ID) {
-    if (ID < this->size) {
+    if (ID < this->capacity) {
         return this->indices[ID];
     }
     return -1;
@@ -128,19 +128,19 @@ std::ostream& operator<<(std::ostream& out, const MinHeap& h) {
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << h.IDs[i] << " ";
     }
-    out << std::endl;
+    out << "\n";
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << h.keys[i] << " ";
     }
-    out << std::endl;
+    out << "\n";
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << h.indices[i] << " ";
     }
-    out << std::endl;
+    out << "\n";
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << i << " ";
     }
-    out << std::endl;
+    out << "\n";
     return out;
 }
 

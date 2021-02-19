@@ -8,17 +8,21 @@
 #include "graph.h"
 #include "min_heap.h"
 
-void processGraph(std::string fileName, unsigned char options) {
+void printOptions(unsigned char options) {
     std::ostringstream ss;
-    ss << fileName << std::endl;
     ss << "MODE: ";
     ss << (options & Directed ? "DIRECTED " : "UNDIRECTED ");
     ss << (options & Weighted ? "WEIGHTED " : "UNWEIGHTED ");
     ss << (options & PrintEdges ? "PRINT_EDGES " : "");
     std::cout << ss.str() << std::endl;
+}
+
+void processGraph(std::string fileName, unsigned char options) {
+    std::cout << fileName << std::endl;
+    printOptions(options);
 
     Graph g = Graph(fileName, options);
-    // g.DFS();
+    g.DFS();
 
     // Get filename, remove .txt and add .csv
     int beginIdx = fileName.rfind('/');
@@ -29,30 +33,31 @@ void processGraph(std::string fileName, unsigned char options) {
 }
 
 void printGraph(std::string fileName, unsigned char options) {
-    std::ostringstream ss;
-    ss << fileName << std::endl;
-    ss << "MODE: ";
-    ss << (options & Directed ? "DIRECTED " : "UNDIRECTED ");
-    ss << (options & Weighted ? "WEIGHTED " : "UNWEIGHTED ");
-    ss << (options & PrintEdges ? "PRINT_EDGES " : "");
-    std::cout << ss.str() << std::endl;
+    std::cout << fileName << std::endl;
+    printOptions(options);
 
     Graph g = Graph(fileName, options);
     g.DFS();
-    g.BFS(1);
-    g.BFS(2);
+    g.Djikstra(1);
     std::cout << g << std::endl;
 }
 
 // makeheap(), deletemin(), insert() and decreasekey()
 void timeBinaryHeap() {
+    srand(time(NULL));
     std::ofstream f("min-heap.csv");
 
-    for (int i = 4; i <= 22; i++) {
+    for (int i = 4; i <= 28; i++) {
         double avgMakeHeap, avgDeleteMin, avgInsert, avgDecreaseKey = 0;
         int size = pow(2, i);
         int reps = 10;
         int innerReps = 100000;
+        if (i > 22) {
+            reps = 4;
+        }
+        if (i > 24) {
+            reps = 2;
+        }
         for (int j = 0; j < reps; j++) {
             // Create vector
             std::vector<Element> S(size);
@@ -77,7 +82,7 @@ void timeBinaryHeap() {
 
                 // Bubble
                 start = clock();
-                h.Insert(Element{ size + 1, 134 });
+                h.Insert(Element{ size + 1, k });
                 elapsed = (clock() - start) / CLOCKS_PER_SEC;
                 avgInsert += elapsed;
 
@@ -145,13 +150,19 @@ void readInputs(int argc, char const* argv[]) {
         } else if (argv[i][0] != '-') {
             options& OnlyPrint ? printGraph(argv[i], options) : processGraph(argv[i], options);
         } else {
-            std::cerr << "Ignoring invalid argument: " << argv[i] << std::endl;
+            std::cerr << "Invalid argument: " << argv[i] << std::endl;
+            std::ostringstream ss;
+            ss << "\n";
+            ss << "-d | Set DIRECTED mode for reading from a file\n";
+            ss << "-w | Set WEIGHTED mode for reading from a file\n";
+            ss << "-e | Print edges when printing graphs\n";
+            ss << "-p | Just print graphs\n";
+            std::cerr << ss.str() << std::endl;
         }
     }
 }
 
 int main(int argc, char const* argv[]) {
-    srand(time(NULL));
     // readInputs(argc, argv);
     // testBinaryHeap();
     timeBinaryHeap();

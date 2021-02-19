@@ -47,8 +47,10 @@ Must be .txt
 When parsing the graph, pass in flags to indicate whether the graph is directed/undirected and weighted/unweighted
 
 ```bash
-./graph.exe [-d] [-w] [*.txt files...]
+./graph.exe [-d] [-w] [-p] [-e] [*.txt files...]
 ```
 
 - -d for directed, omit for undirected
 - -w for weighted, omit for unweighted
+- -p just print graphs, don't write to file
+- -e print edges too
