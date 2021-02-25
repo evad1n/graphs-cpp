@@ -125,19 +125,28 @@ int MinHeap::Right(int idx) {
 
 std::ostream& operator<<(std::ostream& out, const MinHeap& h) {
     out.setf(std::ios::left);
+    out << std::setw(10) << "i";
+    for (int i = 0; i < h.capacity; i++) {
+        out << std::setw(4) << i << " ";
+    }
+    out << "\n" << std::string(10 + h.capacity * 5, '-') << "\n";
+    out << std::setw(10) << "IDs: ";
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << h.IDs[i] << " ";
     }
     out << "\n";
+    out << std::setw(10) << "Keys: ";
     for (int i = 0; i < h.size; i++) {
         out << std::setw(4) << h.keys[i] << " ";
     }
     out << "\n";
-    for (int i = 0; i < h.size; i++) {
+    out << std::setw(10) << "Indices: ";
+    for (int i = 0; i < h.capacity; i++) {
         out << std::setw(4) << h.indices[i] << " ";
     }
-    out << "\n";
-    for (int i = 0; i < h.size; i++) {
+    out << "\n" << std::string(10 + h.capacity * 5, '-') << "\n";
+    out << std::setw(10) << "i";
+    for (int i = 0; i < h.capacity; i++) {
         out << std::setw(4) << i << " ";
     }
     out << "\n";
