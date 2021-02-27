@@ -49,7 +49,7 @@ void timeBinaryHeap() {
 
     for (int i = 4; i <= 28; i++) {
         double avgMakeHeap, avgDeleteMin, avgInsert, avgDecreaseKey = 0;
-        int size = pow(2, i);
+        int size = 2 << i - 1;
         int reps = 10;
         int innerReps = 100000;
         if (i > 22) {
@@ -96,7 +96,7 @@ void timeBinaryHeap() {
 
         std::ostringstream ss;
         // Calculate average and write to file
-        ss << i << ", ";
+        ss << i << ", " << size << ", ";
         ss << avgMakeHeap / reps << ", ";
         ss << avgDeleteMin / (reps * innerReps) << ", ";
         ss << avgInsert / (reps * innerReps) << ", ";
@@ -163,9 +163,9 @@ void readInputs(int argc, char const* argv[]) {
 }
 
 int main(int argc, char const* argv[]) {
-    // readInputs(argc, argv);
-    testBinaryHeap();
-    // timeBinaryHeap();
+    //readInputs(argc, argv);
+    // testBinaryHeap();
+     timeBinaryHeap();
 
     return 0;
 }
