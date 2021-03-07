@@ -8,16 +8,28 @@ Graph::Graph(std::string fileName, unsigned char options)
     : opts(options) {
     std::ifstream f;
     f.open(fileName);
+    // Check if file exists
+    if (!f.good()) {
+        std::cerr << "Error reading file: " << fileName << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     std::string line;
     int lineNumber = 1;
     // Get first line: number of vertices
-    getline(f, line);
+    while (getline(f, line)) {
+        // Skip comments
+        if (line.at(0) == '#')
+            continue;
+        else
+            break;
+    }
     this->numV = std::stoi(line);
     // Initialize vertex storage
-    std::vector<Vertex> vertices(this->numV);
+    this->vertices = std::vector<Vertex>(numV);
     for (int i = 0; i < this->numV; i++) {
-        vertices[i] = Vertex{
+        this->vertices[i] = Vertex{
+            "",
             i,
         false,
             0,
@@ -27,23 +39,64 @@ Graph::Graph(std::string fileName, unsigned char options)
         };
     }
 
+    // Read optional labels
+    auto pos = f.tellg();
+    getline(f, line);
+    if (line.at(0) == '-') {
+        this->labeled = true;
+        while (getline(f, line)) {
+            // Skip comments
+            if (line.at(0) == '#')
+                continue;
+            // Termination of labels
+            if (line.at(0) == '-')
+                break;
+
+            std::string label;
+            int num;
+            std::istringstream ss(line);
+            ss >> label >> num;
+            // 1 indexing
+            num--;
+            // Add to map
+            this->labels.insert(std::pair<std::string, int>(label, num));
+            this->vertices[num].label = label;
+        }
+    } else {
+        // Go back a line
+        f.seekg(pos);
+    }
+
+
     // Initialize adjacency matrix to all 0s
     std::vector<std::vector<int>> matrix(this->numV, std::vector<int>(this->numV));
 
     while (getline(f, line)) {
+        // Skip comments
+        if (line.at(0) == '#')
+            continue;
+
         lineNumber++;
         std::istringstream ss(line);
+
         int from, to;
-        // Get vertex numbers for the edge
-        ss >> from >> to;
+        if (this->labeled) {
+            std::string fromLabel, toLabel;
+            ss >> fromLabel >> toLabel;
+            from = this->labels.at(fromLabel);
+            to = this->labels.at(toLabel);
+        } else {
+            // Get vertex numbers for the edge
+            ss >> from >> to;
+            // Account for 1-indexing
+            from--;
+            to--;
+        }
         // Catch bad input errors
-        if (from > this->numV || to > this->numV) {
+        if (from >= this->numV || to >= this->numV) {
             std::cerr << "Not enough vertices provided @ line " << lineNumber << std::endl;
             exit(EXIT_FAILURE);
         }
-        // Account for 1-indexing
-        from--;
-        to--;
         // Set weight
         int weight = 1;
         if (options & Weighted) {
@@ -57,7 +110,6 @@ Graph::Graph(std::string fileName, unsigned char options)
         }
     }
 
-    this->vertices = vertices;
     this->adjacencies = matrix;
 
     f.close();
@@ -74,6 +126,17 @@ void Graph::Explore(int vertexIndex) {
         }
     }
     this->Postvisit(vertexIndex);
+}
+
+void Graph::Previsit(int vertexIndex) {
+    this->vertices[vertexIndex].component = this->cc;
+    this->vertices[vertexIndex].pre = this->clock;
+    this->clock++;
+}
+
+void Graph::Postvisit(int vertexIndex) {
+    this->vertices[vertexIndex].post = this->clock;
+    this->clock++;
 }
 
 void Graph::DFS() {
@@ -125,6 +188,11 @@ void Graph::Dijkstra(int startVertexIndex) {
     startVertexIndex--;
     Vertex* start = &this->vertices[startVertexIndex];
 
+    // Reset values
+    for (auto p : start->distancePaths) {
+        p.distance = INT32_MAX;
+    }
+
     // Binary min heap
     std::vector<Element> els(this->numV);
     for (int i = 0; i < this->numV; i++) {
@@ -154,15 +222,44 @@ void Graph::Dijkstra(int startVertexIndex) {
     }
 }
 
-void Graph::Previsit(int vertexIndex) {
-    this->vertices[vertexIndex].component = this->cc;
-    this->vertices[vertexIndex].pre = this->clock;
-    this->clock++;
-}
+int Graph::Prim() {
+    // Reset
+    this->mst = std::vector<MSTEdge>();
 
-void Graph::Postvisit(int vertexIndex) {
-    this->vertices[vertexIndex].post = this->clock;
-    this->clock++;
+    // Cost tracking
+    std::vector<int> costs(this->numV);
+    int total = 0;
+
+    // Binary min heap
+    std::vector<Element> els(this->numV);
+    for (int i = 0; i < this->numV; i++) {
+        els[i] = Element{ i, INT32_MAX };
+    }
+    MinHeap heap(els);
+
+    while (heap.Size() > 0) {
+        int currIdx = heap.DeleteMin();
+
+        for (int to = 0; to < this->numV; to++) {
+            // If there is an edge
+            if (this->adjacencies[currIdx][to] != 0) {
+                int weight = this->adjacencies[currIdx][to];
+                if (costs[currIdx] > weight) {
+                    // The edge is better
+                    costs[currIdx] = weight;
+                    this->mst.push_back(MSTEdge{
+                            currIdx,
+                            to,
+                            weight
+                        });
+                    total += weight;
+                    heap.DecreaseKey(to, weight);
+                }
+            }
+        }
+    }
+
+    return total;
 }
 
 void Graph::Dump(std::string fileName) {
@@ -171,7 +268,7 @@ void Graph::Dump(std::string fileName) {
     for (int i = 0; i < this->numV; i++) {
         std::ostringstream ss;
         const Vertex* v = &this->vertices[i];
-        ss << i + 1 << ", " << v->pre << ", " << v->post << ", " << v->component << "\n";
+        ss << (v->label == "" ? std::to_string(i + 1) : v->label) << ", " << v->pre << ", " << v->post << ", " << v->component << "\n";
         f << ss.str();
     }
 
@@ -189,12 +286,23 @@ std::ostream& operator<<(std::ostream& out, const Graph& g) {
 std::string Graph::GetVertices() const {
     std::ostringstream ss;
     ss << "Vertices:\n";
-    for (int i = 0; i < this->numV; i++) {
-        const Vertex* v = &this->vertices[i];
-        ss << "Vertex " << i + 1 << ": {visited: " << v->visited << ", component: " << v->component << ", pre: " << v->pre << ", post: " << v->post << "}\n";
-        // Show distances if some form of BFS was performed on this vertex
-        if (v->distancePaths[i].distance != INT32_MAX) {
-            ss << this->GetDistances(i);
+    if (this->labeled) {
+        for (int i = 0; i < this->numV; i++) {
+            const Vertex* v = &this->vertices[i];
+            ss << "Vertex " << v->label << ": {visited: " << v->visited << ", component: " << v->component << ", pre: " << v->pre << ", post: " << v->post << "}\n";
+            // Show distances if some form of BFS was performed on this vertex
+            if (v->distancePaths[i].distance != INT32_MAX) {
+                ss << this->GetDistances(i);
+            }
+        }
+    } else {
+        for (int i = 0; i < this->numV; i++) {
+            const Vertex* v = &this->vertices[i];
+            ss << "Vertex " << i + 1 << ": {visited: " << v->visited << ", component: " << v->component << ", pre: " << v->pre << ", post: " << v->post << "}\n";
+            // Show distances if some form of BFS was performed on this vertex
+            if (v->distancePaths[i].distance != INT32_MAX) {
+                ss << this->GetDistances(i);
+            }
         }
     }
     return ss.str();
@@ -203,26 +311,69 @@ std::string Graph::GetVertices() const {
 std::string Graph::GetDistances(int vertexIdx) const {
     std::ostringstream ss;
     const Vertex* v = &this->vertices[vertexIdx];
-    ss << "Distances from Vertex " << vertexIdx << " {\n";
-    for (int i = 0; i < this->numV; i++) {
-        ss << "\tTo Vertex " << i + 1 << " => Distance: ";
-        if (v->distancePaths[i].distance == INT32_MAX)
-            ss << "∞";
-        else
-            ss << v->distancePaths[i].distance;
-        ss << ", Prev: ";
-        if (v->distancePaths[i].prev != NULL)
-            ss << v->distancePaths[i].prev->number + 1;
-        else
-            ss << "NULL";
-        ss << "\n";
+    if (this->labeled) {
+        ss << "Distances from Vertex " << v->label << " {\n";
+        for (int i = 0; i < this->numV; i++) {
+            ss << "\tTo Vertex " << this->vertices[i].label << " => Distance: ";
+            if (v->distancePaths[i].distance == INT32_MAX)
+                ss << "∞";
+            else
+                ss << v->distancePaths[i].distance;
+            ss << ", Prev: ";
+            if (v->distancePaths[i].prev != NULL)
+                ss << v->distancePaths[i].prev->number + 1;
+            else
+                ss << "NULL";
+            ss << "\n";
+        }
+        ss << "}\n";
+    } else {
+        ss << "Distances from Vertex " << vertexIdx << " {\n";
+        for (int i = 0; i < this->numV; i++) {
+            ss << "\tTo Vertex " << i + 1 << " => Distance: ";
+            if (v->distancePaths[i].distance == INT32_MAX)
+                ss << "∞";
+            else
+                ss << v->distancePaths[i].distance;
+            ss << ", Prev: ";
+            if (v->distancePaths[i].prev != NULL)
+                ss << v->distancePaths[i].prev->number + 1;
+            else
+                ss << "NULL";
+            ss << "\n";
+        }
+        ss << "}\n";
     }
-    ss << "}\n";
 
     return ss.str();
 }
 
 std::string Graph::GetEdges() const {
+    std::ostringstream ss;
+    ss << "\nEdges:\n";
+    if (this->labeled) {
+        for (int fromIdx = 0; fromIdx < this->numV; fromIdx++) {
+            const Vertex* from = &this->vertices[fromIdx];
+            for (int toIdx = 0; toIdx < this->numV; toIdx++) {
+                const Vertex* to = &this->vertices[toIdx];
+                if (this->adjacencies[fromIdx][toIdx] > 0) {
+                    ss << "from: " << from->label << ", to: " << to->label << ", weight: " << this->adjacencies[fromIdx][toIdx] << "\n";
+                }
+            }
+        }
+    } else {
+        for (int from = 0; from < this->numV; from++) {
+            for (int to = 0; to < this->numV; to++) {
+                if (this->adjacencies[from][to] > 0) {
+                    ss << "from: " << from + 1 << ", to: " << to + 1 << ", weight: " << this->adjacencies[from][to] << "\n";
+                }
+            }
+        }
+    }
+    return ss.str();
+}
+
+std::string Graph::GetMST() const {
     std::ostringstream ss;
     ss << "\nEdges:\n";
     for (int from = 0; from < this->numV; from++) {

@@ -38,7 +38,9 @@ void printGraph(std::string fileName, unsigned char options) {
 
     Graph g = Graph(fileName, options);
     // g.DFS();
-    g.BFS(1);
+    // g.BFS(1);
+    g.Dijkstra(1);
+    // g.Prim();
     std::cout << g << std::endl;
 }
 
@@ -148,7 +150,7 @@ void readInputs(int argc, char const* argv[]) {
         } else if (strcmp(argv[i], "-p") == 0) {
             options |= OnlyPrint;
         } else if (argv[i][0] != '-') {
-            options& OnlyPrint ? printGraph(argv[i], options) : processGraph(argv[i], options);
+            (options & OnlyPrint) ? printGraph(argv[i], options) : processGraph(argv[i], options);
         } else {
             std::cerr << "Invalid argument: " << argv[i] << std::endl;
             std::ostringstream ss;
@@ -163,9 +165,9 @@ void readInputs(int argc, char const* argv[]) {
 }
 
 int main(int argc, char const* argv[]) {
-    //readInputs(argc, argv);
+    readInputs(argc, argv);
     // testBinaryHeap();
-     timeBinaryHeap();
+    //  timeBinaryHeap();
 
     return 0;
 }
