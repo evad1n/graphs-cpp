@@ -44,10 +44,16 @@ void MinHeap::Insert(Element el) {
 }
 
 void MinHeap::IncreaseKey(int ID, int newKey) {
+    // Don't do anything if ID was popped
+    if (this->Index(ID) == -1)
+        return;
     this->SiftDown(Element{ ID, newKey }, this->Index(ID));
 }
 
 void MinHeap::DecreaseKey(int ID, int newKey) {
+    // Don't do anything if ID was popped
+    if (this->Index(ID) == -1)
+        return;
     this->BubbleUp(Element{ ID, newKey }, this->Index(ID));
 }
 
@@ -56,6 +62,8 @@ int MinHeap::DeleteMin() {
         Element e = Element{ this->IDs[0], this->keys[0] };
         this->size--;
         this->SiftDown(Element{ this->IDs[this->size], this->keys[this->size] }, 0);
+        // Set index to -1
+        this->indices[e.ID] = -1;
         return e.ID;
     }
     // Empty

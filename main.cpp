@@ -39,8 +39,15 @@ void printGraph(std::string fileName, unsigned char options) {
     Graph g = Graph(fileName, options);
     // g.DFS();
     // g.BFS(1);
-    g.Dijkstra(1);
-    // g.Prim();
+    // g.Dijkstra(1);
+    int cost = g.Prim();
+
+    // Temp for 5b
+    std::ofstream out;
+    out.open("out/5b.csv", std::ios_base::app);
+    out << fileName << ", " << cost << "\n";
+    out.close();
+
     std::cout << g << std::endl;
 }
 
@@ -149,6 +156,16 @@ void readInputs(int argc, char const* argv[]) {
             options |= PrintEdges;
         } else if (strcmp(argv[i], "-p") == 0) {
             options |= OnlyPrint;
+        } else if (argv[i][0] == '-') {
+            // Multi args
+            if (strstr(argv[i], "d") != NULL)
+                options |= Directed;
+            if (strstr(argv[i], "w") != NULL)
+                options |= Weighted;
+            if (strstr(argv[i], "e") != NULL)
+                options |= PrintEdges;
+            if (strstr(argv[i], "p") != NULL)
+                options |= OnlyPrint;
         } else if (argv[i][0] != '-') {
             (options & OnlyPrint) ? printGraph(argv[i], options) : processGraph(argv[i], options);
         } else {

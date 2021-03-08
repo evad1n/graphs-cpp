@@ -226,9 +226,11 @@ int Graph::Prim() {
     // Reset
     this->mst = std::vector<MSTEdge>();
 
+    int totalCost = 0;
     // Cost tracking
-    std::vector<int> costs(this->numV);
-    int total = 0;
+    std::vector<int> costs(this->numV, INT32_MAX);
+    // Prev tracking
+    std::vector<int> prev(this->numV, -1);
 
     // Binary min heap
     std::vector<Element> els(this->numV);
@@ -237,34 +239,43 @@ int Graph::Prim() {
     }
     MinHeap heap(els);
 
+    // Start at first vertex; doesn't matter
+    int start = 0;
+    costs[start] = start;
+    heap.DecreaseKey(start, 0);
+
     while (heap.Size() > 0) {
         int currIdx = heap.DeleteMin();
+        // Add to MST
+        if (currIdx != start) {
+            this->mst.push_back(
+                MSTEdge{ prev[currIdx], currIdx, costs[currIdx] }
+            );
+        }
+        totalCost += costs[currIdx];
 
         for (int to = 0; to < this->numV; to++) {
             // If there is an edge
             if (this->adjacencies[currIdx][to] != 0) {
                 int weight = this->adjacencies[currIdx][to];
-                if (costs[currIdx] > weight) {
+                if (costs[to] > weight) {
                     // The edge is better
-                    costs[currIdx] = weight;
-                    this->mst.push_back(MSTEdge{
-                            currIdx,
-                            to,
-                            weight
-                        });
-                    total += weight;
+                    costs[to] = weight;
+                    prev[to] = currIdx;
                     heap.DecreaseKey(to, weight);
                 }
             }
         }
     }
 
-    return total;
+    this->mstCost = totalCost;
+    return totalCost;
 }
 
 void Graph::Dump(std::string fileName) {
     std::ofstream f(fileName);
 
+    // Pre/Post/CC
     for (int i = 0; i < this->numV; i++) {
         std::ostringstream ss;
         const Vertex* v = &this->vertices[i];
@@ -277,6 +288,9 @@ void Graph::Dump(std::string fileName) {
 
 std::ostream& operator<<(std::ostream& out, const Graph& g) {
     out << g.GetVertices();
+    if (g.mstCost != 0) {
+        out << g.GetMST();
+    }
     if (g.opts & PrintEdges) {
         out << g.GetEdges();
     }
@@ -375,12 +389,15 @@ std::string Graph::GetEdges() const {
 
 std::string Graph::GetMST() const {
     std::ostringstream ss;
-    ss << "\nEdges:\n";
-    for (int from = 0; from < this->numV; from++) {
-        for (int to = 0; to < this->numV; to++) {
-            if (this->adjacencies[from][to] > 0) {
-                ss << "from: " << from + 1 << ", to: " << to + 1 << ", weight: " << this->adjacencies[from][to] << "\n";
-            }
+    ss << "\nMinimum Spanning Tree:\n";
+    ss << "Cost: " << this->mstCost << "\n";
+    if (this->labeled) {
+        for (auto e : this->mst) {
+            ss << "from: " << this->vertices[e.from].label << ", to: " << this->vertices[e.to].label << ", weight: " << e.weight << "\n";
+        }
+    } else {
+        for (auto e : this->mst) {
+            ss << "from: " << e.from << ", to: " << e.to << ", weight: " << e.weight << "\n";
         }
     }
     return ss.str();

@@ -51,7 +51,8 @@ private:
     int cc; // Connected component number
     int clock; // Previsit/postvisit counter
 
-    std::vector<MSTEdge> mst;
+    int mstCost; // Total cost of the MST
+    std::vector<MSTEdge> mst; // All the edges in the MST
 
     // Input type flags
     unsigned char opts;
