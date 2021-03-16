@@ -5,7 +5,7 @@
 #include "min_heap.h"
 
 Graph::Graph(std::string fileName, unsigned char options)
-    : opts(options) {
+    : labeled(false), opts(options) {
     std::ifstream f;
     f.open(fileName);
     // Check if file exists
@@ -75,8 +75,6 @@ Graph::Graph(std::string fileName, unsigned char options)
         // Initialize adjacency matrix to all 0s
         this->adjacencies = std::vector<std::vector<int>>(this->numV, std::vector<int>(this->numV));
     }
-
-    int x = 3;
 
     while (getline(f, line)) {
         // Skip comments

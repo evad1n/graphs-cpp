@@ -23,14 +23,18 @@ void processGraph(std::string fileName, unsigned char options) {
     printOptions(options);
 
     Graph g = Graph(fileName, options);
-    g.DFS();
 
     // Get filename, remove .txt and add .csv
-    int beginIdx = fileName.rfind('/');
-    std::string outFile = fileName.substr(beginIdx + 1);
-    outFile = "out/" + outFile.substr(0, outFile.length() - 4) + ".csv";
-    std::cout << "writing to " << outFile << std::endl;
-    g.Dump(outFile);
+    int endIdx = fileName.rfind('-');
+    int beginIdx = fileName.rfind('-', endIdx - 1);
+    std::string size = fileName.substr(beginIdx + 1, endIdx - beginIdx - 1);
+    std::cout << size << std::endl;
+
+    // std::string outFile = "out/prim-times.csv";
+    // std::ofstream f;
+    // f.open(outFile, std::ofstream::out | std::ofstream::app);
+    // int cost = g.Prim();
+    // // f << fileName <<
 }
 
 void printGraph(std::string fileName, unsigned char options) {
@@ -145,9 +149,56 @@ void testBinaryHeap() {
 
 }
 
+void timePrims(std::vector<std::string> files, unsigned char opts) {
+    std::ofstream f("out/prim-times.csv");
+    printOptions(opts);
+
+
+    for (auto fileName : files) {
+        double avgTime = 0;
+        double reps = 0;
+        int cost;
+        // Get size of graph from filename
+        int endIdx = fileName.rfind('-');
+        int beginIdx = fileName.rfind('-', endIdx - 1);
+        int size = atoi(fileName.substr(beginIdx + 1, endIdx - beginIdx - 1).c_str());
+
+
+        Graph g = Graph(fileName, opts);
+
+        double innerReps = 1;
+        if (size <= 100000) {
+            innerReps = 4;
+        }
+        if (size <= 10000) {
+            innerReps = 10;
+        }
+        if (size <= 1000) {
+            innerReps = 100;
+        }
+        for (size_t i = 0; i < innerReps; i++) {
+            // Time it
+            reps++;
+            double start, elapsed;
+            start = clock();
+            cost = g.Prim();
+            elapsed = (clock() - start) / CLOCKS_PER_SEC;
+            avgTime += elapsed;
+        }
+
+        std::cout << fileName << ", " << avgTime / reps << ", " << cost << std::endl;
+        f << fileName << ", " << avgTime / reps << ", " << cost << "\n";
+
+    }
+
+    f.close();
+}
+
+
 void readInputs(int argc, char const* argv[]) {
-    // Default to undirected and unweighted
+    // Default to undirected and unweighted, matrix
     unsigned char options = 0;
+    std::vector<std::string> files;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0) {
@@ -173,7 +224,7 @@ void readInputs(int argc, char const* argv[]) {
             if (strstr(argv[i], "l") != NULL)
                 options |= UseList;
         } else if (argv[i][0] != '-') {
-            (options & OnlyPrint) ? printGraph(argv[i], options) : processGraph(argv[i], options);
+            files.push_back(argv[i]);
         } else {
             std::cerr << "Invalid argument: " << argv[i] << std::endl;
             std::ostringstream ss;
@@ -186,6 +237,11 @@ void readInputs(int argc, char const* argv[]) {
             std::cerr << ss.str() << std::endl;
         }
     }
+    // for (auto f : files) {
+    //     (options & OnlyPrint) ? printGraph(f, options) : processGraph(f, options);
+    // }
+    timePrims(files, options);
+
 }
 
 int main(int argc, char const* argv[]) {
