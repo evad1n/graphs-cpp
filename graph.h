@@ -10,7 +10,8 @@ enum Options {
     Directed = 0x01,
     Weighted = 0x02,
     PrintEdges = 0x04,
-    OnlyPrint = 0x08
+    OnlyPrint = 0x08,
+    UseList = 0x10, // List or matrix for edges
 };
 
 struct Vertex;
@@ -38,6 +39,11 @@ struct Vertex {
     std::vector<DistancePath> distancePaths; // The distances to other vertices in the graph
 };
 
+struct ListEdge {
+    int to;
+    int weight;
+};
+
 
 class Graph {
 private:
@@ -46,6 +52,7 @@ private:
     int numV; // Number of vertices
     std::vector<Vertex> vertices; // List of vertices
     std::vector<std::vector<int>> adjacencies; // The adjancency matrix
+    std::vector<std::vector<ListEdge>> adjacencyList; // The adjancency list
 
 
     int cc; // Connected component number

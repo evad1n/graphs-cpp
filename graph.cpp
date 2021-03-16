@@ -35,7 +35,7 @@ Graph::Graph(std::string fileName, unsigned char options)
             0,
             0,
             0,
-            std::vector<DistancePath>(this->numV, DistancePath{})
+            // std::vector<DistancePath>(this->numV, DistancePath{})
         };
     }
 
@@ -68,8 +68,15 @@ Graph::Graph(std::string fileName, unsigned char options)
     }
 
 
-    // Initialize adjacency matrix to all 0s
-    std::vector<std::vector<int>> matrix(this->numV, std::vector<int>(this->numV));
+    if (options & UseList) {
+        // Initialize adjacency matrix to all 0s
+        this->adjacencyList = std::vector<std::vector<ListEdge>>(this->numV, std::vector<ListEdge>());
+    } else {
+        // Initialize adjacency matrix to all 0s
+        this->adjacencies = std::vector<std::vector<int>>(this->numV, std::vector<int>(this->numV));
+    }
+
+    int x = 3;
 
     while (getline(f, line)) {
         // Skip comments
@@ -102,15 +109,23 @@ Graph::Graph(std::string fileName, unsigned char options)
         if (options & Weighted) {
             ss >> weight;
         }
-        // Set in matrix
-        matrix[from][to] = weight;
-        // Also do reverse 
-        if (options ^ Directed) {
-            matrix[to][from] = weight;
+
+        if (options & UseList) {
+            // Set in list
+            this->adjacencyList[from].push_back(ListEdge{ to, weight });
+            // Also do reverse 
+            if (options ^ Directed) {
+                this->adjacencyList[to].push_back(ListEdge{ from, weight });
+            }
+        } else {
+            // Set in matrix
+            this->adjacencies[from][to] = weight;
+            // Also do reverse 
+            if (options ^ Directed) {
+                this->adjacencies[to][from] = weight;
+            }
         }
     }
-
-    this->adjacencies = matrix;
 
     f.close();
 }
@@ -160,10 +175,8 @@ void Graph::BFS(int startVertexIndex) {
     Vertex* start = &this->vertices[startVertexIndex];
 
     // Reset values
-    for (auto v : this->vertices) {
-        for (auto other : v.distancePaths) {
-            other.distance = INT32_MAX;
-        }
+    for (auto other : this->vertices[startVertexIndex].distancePaths) {
+        other.distance = INT32_MAX;
     }
     start->distancePaths[startVertexIndex].distance = 0;
 
@@ -247,22 +260,34 @@ int Graph::Prim() {
     while (heap.Size() > 0) {
         int currIdx = heap.DeleteMin();
         // Add to MST
-        if (currIdx != start) {
-            this->mst.push_back(
-                MSTEdge{ prev[currIdx], currIdx, costs[currIdx] }
-            );
-        }
+        // if (currIdx != start) {
+        //     this->mst.push_back(
+        //         MSTEdge{ prev[currIdx], currIdx, costs[currIdx] }
+        //     );
+        // }
         totalCost += costs[currIdx];
 
-        for (int to = 0; to < this->numV; to++) {
-            // If there is an edge
-            if (this->adjacencies[currIdx][to] != 0) {
-                int weight = this->adjacencies[currIdx][to];
-                if (costs[to] > weight) {
+        if (this->opts & UseList) {
+            for (auto e : this->adjacencyList[currIdx]) {
+                int weight = e.weight;
+                if (costs[e.to] > weight) {
                     // The edge is better
-                    costs[to] = weight;
-                    prev[to] = currIdx;
-                    heap.DecreaseKey(to, weight);
+                    costs[e.to] = weight;
+                    prev[e.to] = currIdx;
+                    heap.DecreaseKey(e.to, weight);
+                }
+            }
+        } else {
+            for (int to = 0; to < this->numV; to++) {
+                // If there is an edge
+                if (this->adjacencies[currIdx][to] != 0) {
+                    int weight = this->adjacencies[currIdx][to];
+                    if (costs[to] > weight) {
+                        // The edge is better
+                        costs[to] = weight;
+                        prev[to] = currIdx;
+                        heap.DecreaseKey(to, weight);
+                    }
                 }
             }
         }

@@ -14,6 +14,7 @@ void printOptions(unsigned char options) {
     ss << (options & Directed ? "DIRECTED " : "UNDIRECTED ");
     ss << (options & Weighted ? "WEIGHTED " : "UNWEIGHTED ");
     ss << (options & PrintEdges ? "PRINT_EDGES " : "");
+    ss << (options & UseList ? "ADJACENCY LIST " : "ADJACENCY MATRIX ");
     std::cout << ss.str() << std::endl;
 }
 
@@ -41,14 +42,15 @@ void printGraph(std::string fileName, unsigned char options) {
     // g.BFS(1);
     // g.Dijkstra(1);
     int cost = g.Prim();
+    std::cout << cost << std::endl;
 
     // Temp for 5b
-    std::ofstream out;
-    out.open("out/5b.csv", std::ios_base::app);
-    out << fileName << ", " << cost << "\n";
-    out.close();
+    //std::ofstream out;
+    //out.open("out/5b.csv", std::ios_base::app);
+    //out << fileName << ", " << cost << "\n";
+    //out.close();
 
-    std::cout << g << std::endl;
+    //std::cout << g << std::endl;
 }
 
 // makeheap(), deletemin(), insert() and decreasekey()
@@ -156,6 +158,8 @@ void readInputs(int argc, char const* argv[]) {
             options |= PrintEdges;
         } else if (strcmp(argv[i], "-p") == 0) {
             options |= OnlyPrint;
+        } else if (strcmp(argv[i], "-l") == 0) {
+            options |= UseList;
         } else if (argv[i][0] == '-') {
             // Multi args
             if (strstr(argv[i], "d") != NULL)
@@ -166,6 +170,8 @@ void readInputs(int argc, char const* argv[]) {
                 options |= PrintEdges;
             if (strstr(argv[i], "p") != NULL)
                 options |= OnlyPrint;
+            if (strstr(argv[i], "l") != NULL)
+                options |= UseList;
         } else if (argv[i][0] != '-') {
             (options & OnlyPrint) ? printGraph(argv[i], options) : processGraph(argv[i], options);
         } else {
@@ -176,6 +182,7 @@ void readInputs(int argc, char const* argv[]) {
             ss << "-w | Set WEIGHTED mode for reading from a file\n";
             ss << "-e | Print edges when printing graphs\n";
             ss << "-p | Just print graphs\n";
+            ss << "-l | Use adjacency list instead of a matrix\n";
             std::cerr << ss.str() << std::endl;
         }
     }
