@@ -5,8 +5,21 @@
 #include <fstream>
 #include <time.h>
 #include <cmath>
+#include <algorithm>
 #include "graph.h"
 #include "min_heap.h"
+
+bool compareFileSize(std::string f1, std::string f2) {
+    int endIdx = f1.rfind('-');
+    int beginIdx = f1.rfind('-', endIdx - 1);
+    int size1 = atoi(f1.substr(beginIdx + 1, endIdx - beginIdx - 1).c_str());
+
+    endIdx = f2.rfind('-');
+    beginIdx = f2.rfind('-', endIdx - 1);
+    int size2 = atoi(f2.substr(beginIdx + 1, endIdx - beginIdx - 1).c_str());
+
+    return size1 < size2;
+}
 
 void printOptions(unsigned char options) {
     std::ostringstream ss;
@@ -149,8 +162,8 @@ void testBinaryHeap() {
 
 }
 
-void timePrims(std::vector<std::string> files, unsigned char opts) {
-    std::ofstream f("out/prim-times.csv");
+void timePrimsIndividual(std::vector<std::string> files, unsigned char opts) {
+    std::ofstream f("out/prim-times-individual.csv");
     printOptions(opts);
 
 
@@ -190,6 +203,59 @@ void timePrims(std::vector<std::string> files, unsigned char opts) {
         f << fileName << ", " << avgTime / reps << ", " << cost << "\n";
 
     }
+
+    f.close();
+}
+
+void timePrimsAverage(std::vector<std::string> files, unsigned char opts) {
+    std::ofstream f("out/prim-times-average.csv");
+    printOptions(opts);
+
+    int lastSize = 0;
+    double avgTime = 0;
+    double reps = 0;
+
+    for (auto fileName : files) {
+        int cost;
+        // Get size of graph from filename
+        int endIdx = fileName.rfind('-');
+        int beginIdx = fileName.rfind('-', endIdx - 1);
+        int size = atoi(fileName.substr(beginIdx + 1, endIdx - beginIdx - 1).c_str());
+        if (size != lastSize && fileName != files[0]) {
+            std::cout << avgTime << ", " << reps << std::endl;
+            std::cout << lastSize << ", " << avgTime / reps << std::endl;
+            f << lastSize << ", " << avgTime / reps << "\n";
+            avgTime = 0;
+            reps = 0;
+        }
+        lastSize = size;
+
+
+        Graph g = Graph(fileName, opts);
+
+        double innerReps = 1;
+        if (size <= 100000) {
+            innerReps = 4;
+        }
+        if (size <= 10000) {
+            innerReps = 10;
+        }
+        if (size <= 1000) {
+            innerReps = 100;
+        }
+        for (size_t i = 0; i < innerReps; i++) {
+            // Time it
+            reps++;
+            double start, elapsed;
+            start = clock();
+            cost = g.Prim();
+            elapsed = (clock() - start) / CLOCKS_PER_SEC;
+            avgTime += elapsed;
+        }
+    }
+    std::cout << avgTime << ", " << reps << std::endl;
+    std::cout << lastSize << ", " << avgTime / reps << std::endl;
+    f << lastSize << ", " << avgTime / reps << "\n";
 
     f.close();
 }
@@ -240,7 +306,11 @@ void readInputs(int argc, char const* argv[]) {
     // for (auto f : files) {
     //     (options & OnlyPrint) ? printGraph(f, options) : processGraph(f, options);
     // }
-    timePrims(files, options);
+
+    // Sort files by size
+    std::sort(files.begin(), files.end(), compareFileSize);
+    timePrimsAverage(files, options);
+    // timePrimsIndividual(files, options);
 
 }
 
